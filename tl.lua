@@ -1202,6 +1202,7 @@ local Node = {ExpectedContext = {}, }
 
 
 
+
 local function is_array_type(t)
    return t.typename == "array" or t.typename == "arrayrecord"
 end
@@ -2107,6 +2108,7 @@ end
 
 local function parse_variable_name(ps, i)
    local is_const = false
+   local is_close = false
    local node
    i, node = verify_kind(ps, i, "identifier")
    if not node then
@@ -2119,6 +2121,8 @@ local function parse_variable_name(ps, i)
       if annotation then
          if annotation.tk == "const" then
             is_const = true
+         elseif annotation.tk == "close" then
+            is_close = true
          else
             fail(ps, i, "unknown variable annotation: " .. annotation.tk)
          end
@@ -2128,6 +2132,7 @@ local function parse_variable_name(ps, i)
       i = verify_tk(ps, i, ">")
    end
    node.is_const = is_const
+   node.is_close = is_close
    return i, node
 end
 
@@ -3879,6 +3884,9 @@ function tl.pretty_print_ast(ast, mode)
          after = function(node, _children)
             local out = { y = node.y, h = 0 }
             add_string(out, node.tk)
+            if node.is_close then
+               add_string(out, "<close>")
+            end
             return out
          end,
       },

@@ -1159,6 +1159,7 @@ local record Node
 
    -- local
    is_const: boolean
+   is_close: boolean
 
    fn_owner: Node
    is_method: boolean
@@ -2107,6 +2108,7 @@ end
 
 local function parse_variable_name(ps: ParseState, i: integer): integer, Node, integer
    local is_const: boolean = false
+   local is_close: boolean = false
    local node: Node
    i, node = verify_kind(ps, i, "identifier")
    if not node then
@@ -2119,6 +2121,8 @@ local function parse_variable_name(ps: ParseState, i: integer): integer, Node, i
       if annotation then
          if annotation.tk == "const" then
             is_const = true
+         elseif annotation.tk == "close" then
+            is_close = true
          else
             fail(ps, i, "unknown variable annotation: " .. annotation.tk)
          end
@@ -2128,6 +2132,7 @@ local function parse_variable_name(ps: ParseState, i: integer): integer, Node, i
       i = verify_tk(ps, i, ">")
    end
    node.is_const = is_const
+   node.is_close = is_close
    return i, node
 end
 
@@ -3879,6 +3884,9 @@ function tl.pretty_print_ast(ast: Node, mode: boolean | PrettyPrintOpts): string
          after = function(node: Node, _children: {Output}): Output
             local out: Output = { y = node.y, h = 0 }
             add_string(out, node.tk)
+            if node.is_close then
+               add_string(out, "<close>")
+            end
             return out
          end,
       },
